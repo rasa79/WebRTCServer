@@ -65,23 +65,20 @@ class SignalingHandlerTest {
     void testMessageForwardingToRecipient() throws Exception {
         // ARRANGE: Set up TWO users (dad and son)
 
-        // TODO 1: Create a second mock session for "son"
+        // Create a second mock session for "son"
         WebSocketSession sonSession = mock(WebSocketSession.class);
-      //  WebSocketSession dadSession = mock(WebSocketSession.class);// already have this in setup
 
-        // TODO 2: Configure sonSession.getId() to return "sonSession123"
+        // Configure sonSession.getId() to return "sonSession123"
         when(sonSession.getId()).thenReturn("sonSession123");
-        // TODO 3: Configure sonSession.isOpen() to return true
+        // Configure sonSession.isOpen() to return true
         when(sonSession.isOpen()).thenReturn(true);
 
-        // TODO 4: Register dad (reuse the mockSession from setUp - that's dad's session)
-        // Hint: Create RegisterMessage for "dad", convert to JSON, call handleTextMessage
+        // Register dad (reuse the dadSession from setUp - that's dad's session)
         RegisterMessage registerMessageDad = new RegisterMessage("dad");
         String jsonDad = objectMapper.writeValueAsString(registerMessageDad);
         TextMessage textMessageDad = new TextMessage(jsonDad);
 
-        // TODO 5: Register son with sonSession
-        // Hint: Same as TODO 4, but for "son"
+        // Register son with sonSession
         RegisterMessage registerMessageSon = new RegisterMessage("son");
         String jsonSon = objectMapper.writeValueAsString(registerMessageSon);
         TextMessage textMessageSon = new TextMessage(jsonSon);
@@ -91,18 +88,17 @@ class SignalingHandlerTest {
 
         // ACT: Dad sends an offer to son
 
-        // TODO 6: Create a CallMessage
-        // Parameters: type="offer", to="son", sdp="fake-sdp-data"
+        // Create a CallMessage with type="offer", to="son", sdp="fake-sdp-data"
         CallMessage callMessage = new CallMessage("offer", "son", "fake-sdp-data");
 
-        // TODO 7: Convert CallMessage to JSON string
+        // Convert CallMessage to JSON string
         String jsonCallMessage = objectMapper.writeValueAsString(callMessage);
 
-        // TODO 8: Wrap JSON in TextMessage
+        // Wrap JSON in TextMessage
         TextMessage textMessageCallMessage = new TextMessage(jsonCallMessage);
 
-        // TODO 9: Call handler.handleTextMessage with dad's session and the message
-            handler.handleTextMessage(dadSession, textMessageCallMessage);
+        // Call handler.handleTextMessage with dad's session and the message
+        handler.handleTextMessage(dadSession, textMessageCallMessage);
         // ASSERT: Verify son received the message with the "from" field added
 
         // Create expected message with "from" field populated by server
@@ -116,7 +112,6 @@ class SignalingHandlerTest {
     @Test
     void testDisconnectionCleansUpMaps() throws Exception {
         // ARRANGE: Register dad
-        // TODO: Create RegisterMessage, convert to JSON, register dad
         RegisterMessage registerMessageDad = new RegisterMessage("dad");
         String jsonDad = objectMapper.writeValueAsString(registerMessageDad);
         TextMessage textMessageDad = new TextMessage(jsonDad);
@@ -126,16 +121,10 @@ class SignalingHandlerTest {
         assertNotNull(handler.getSession("dad"), "Dad should be registered before disconnecting");
 
         // ACT: Dad disconnects
-        // TODO: Call handler.afterConnectionClosed(dadSession, CloseStatus.NORMAL)
         handler.afterConnectionClosed(dadSession, CloseStatus.NORMAL);
-        // Hint: You'll need to import CloseStatus from Spring
 
         // ASSERT: Verify both maps are cleaned up
-        // TODO: Check that handler.getSession("dad") returns null
-        //assertEquals(null, handler.getSession("dad"));
-        assertNull(handler.getSession("dad")); // -> this is the better option then this above
-        // TODO: Check that handler.getUserId("session123") returns null
-        //assertEquals(null, handler.getUserId("session123"));
-        assertNull(handler.getUserId("session123"));
+        assertNull(handler.getSession("dad"), "Session should be removed after disconnection");
+        assertNull(handler.getUserId("session123"), "UserId mapping should be removed after disconnection");
     }
 }
